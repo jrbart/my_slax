@@ -1,0 +1,7 @@
+Table name always plural
+
+Schema name always singular
+
+column names always singular
+
+
