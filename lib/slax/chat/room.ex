@@ -10,7 +10,7 @@ defmodule Slax.Chat.Room do
   end
 
   @doc false
-  def changeset(%Room{} = room, attrs) do
+  def changeset(room, attrs) do
     room
     |> cast(attrs, [:name, :topic])
     |> validate_required([:name, :topic])
