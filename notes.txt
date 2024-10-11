@@ -4,4 +4,4 @@ Schema name always singular
 
 column names always singular
 
-
+belongs_to goes on the schema that has the foreign key
