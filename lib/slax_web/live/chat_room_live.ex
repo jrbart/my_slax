@@ -87,7 +87,12 @@ defmodule SlaxWeb.ChatRoomLive do
           <% end %>
         </ul>
       </div>
-      <div id="room-messages" class="flex flex-col flex-grow overflow-auto" phx-update="stream">
+      <div 
+        id="room-messages" 
+        class="flex flex-col flex-grow overflow-auto" 
+        phx-hook="RoomMessages"
+        phx-update="stream"
+      >
        <.message 
         :for={{dom_id, message} <- @streams.messages} 
         current_user={@current_user}
@@ -109,8 +114,9 @@ defmodule SlaxWeb.ChatRoomLive do
           cols=""
           id="chat-message-textarea"
           name={@new_message_form[:body].name}
-          placeholder={"Message ##{@room.name}"}
           phx-debounce
+          phx-hook="ChatMessageTextarea"
+          placeholder={"Message #{@room.name}"}
           rows="1"
           > <%= Phoenix.HTML.Form.normalize_value("textarea", @new_message_form[:body].value) %> </textarea>
           <button class="flex-shrink flex items-center justify-center h-6 w-6 rounded hover:bg-slate-200">
@@ -215,7 +221,9 @@ defmodule SlaxWeb.ChatRoomLive do
         room: room
       )
     |> stream(:messages, messages, reset: true)
-    |> assign_message_form(Chat.change_message(%Message{}))}
+    |> assign_message_form(Chat.change_message(%Message{}))
+    |> push_event("scroll_messages_to_bottom", %{})
+    }
   end
 
   defp assign_message_form(socket, changeset) do
@@ -254,7 +262,12 @@ defmodule SlaxWeb.ChatRoomLive do
   end
 
   def handle_info({:new_message, message}, socket) do
-    {:noreply, stream_insert(socket, :messages, message)}
+    socket =
+      socket
+      |> stream_insert(:messages, message)
+      |> push_event("scroll_messages_to_bottom", %{})
+
+    {:noreply, socket}
   end
 
   def handle_info({:message_deleted, message}, socket) do
