@@ -1,15 +1,15 @@
 defmodule SlaxWeb.ChatRoomLive do
   use SlaxWeb, :live_view
-  
+
   alias Slax.Accounts
   alias Slax.Accounts.User
   alias Slax.Chat
-  alias Slax.Chat.{Message,Room}
+  alias Slax.Chat.{Message, Room}
   alias SlaxWeb.OnlineUsers
 
   def render(assigns) do
     ~H"""
-      <div class="flex flex-col flex-shrink-0 w-64 bg-slate-100">
+    <div class="flex flex-col flex-shrink-0 w-64 bg-slate-100">
       <div class="flex justify-between items-center flex-shrink-0 h-16 border-b border-slate-300 px-4">
         <div class="flex flex-col gap-1.5">
           <h1 class="text-lg font-bold text-gray-800">
@@ -22,12 +22,17 @@ defmodule SlaxWeb.ChatRoomLive do
           <span class="ml-2 leading-none font-medium text-sm">Rooms</span>
         </div>
         <div id="rooms-list">
-          <.room_link :for={room <- @rooms} room={room} active={room.id == @room.id} />
+          <.room_link 
+            :for={{room, unread_count} <- @rooms} 
+            room={room} 
+            active={room.id == @room.id}
+            unread_count={unread_count}
+          />
           <button class="group relative flex items-center h-8 text-sm pl-8 pr-3 hover:bg-slate-300 cursor-pointer w-full">
             <.icon name="hero-plus" class="h-4 w-4 relative top-px" />
             <span class="ml-2 leading-none">Add rooms</span>
             <div class="hidden group-focus:block cursor-default absolute top-8 right-2 bg-white border-slate-200 border py-3 rounded-lg">
-            <div class="w-full text-left">
+              <div class="w-full text-left">
                 <div class="hover:bg-sky-600">
                   <div
                     phx-click={JS.navigate(~p"/rooms")}
@@ -62,19 +67,19 @@ defmodule SlaxWeb.ChatRoomLive do
           <h1 class="text-sm font-bold leading-none">
             #<%= @room.name %>
 
-          <.link
-            :if={@joined?}
-            class="font-normal text-xs text-blue-600 hover:text-blue-700"
-            navigate={~p"/rooms/#{@room}/edit"}
-          >
-            Edit
-          </.link>
+            <.link
+              :if={@joined?}
+              class="font-normal text-xs text-blue-600 hover:text-blue-700"
+              navigate={~p"/rooms/#{@room}/edit"}
+            >
+              Edit
+            </.link>
           </h1>
           <div class="text-xs leading-none h-3.5" phx-click="toggle-topic">
             <%= if @hide_topic? do %>
               <span class="text-slate-600"> [Topic hidden] </span>
             <% else %>
-              <%= @room.topic %> 
+              <%= @room.topic %>
             <% end %>
           </div>
         </div>
@@ -120,52 +125,52 @@ defmodule SlaxWeb.ChatRoomLive do
           <% end %>
         </ul>
       </div>
-      <div 
-        id="room-messages" 
-        class="flex flex-col flex-grow overflow-auto" 
+      <div
+        id="room-messages"
+        class="flex flex-col flex-grow overflow-auto"
         phx-hook="RoomMessages"
         phx-update="stream"
       >
-      <%= for {dom_id, message} <- @streams.messages do %>
-        <%= if message == :unread_marker do %>
-          <div id={dom_id} class="w-full flex text-red-500 items-center gap-3 pr-5">
-            <div class="w-full h-px grow bg-red-500"> </div>
-            <div class="text-sm">New</div>
-          </div>
-        <% else %>
-        <.message 
-           current_user={@current_user}
-           dom_id={dom_id} 
-           message={message}
-           timezone={@timezone}
-        />
+        <%= for {dom_id, message} <- @streams.messages do %>
+          <%= if message == :unread_marker do %>
+            <div id={dom_id} class="w-full flex text-red-500 items-center gap-3 pr-5">
+              <div class="w-full h-px grow bg-red-500"></div>
+              <div class="text-sm">New</div>
+            </div>
+          <% else %>
+            <.message
+              current_user={@current_user}
+              dom_id={dom_id}
+              message={message}
+              timezone={@timezone}
+            />
+          <% end %>
         <% end %>
-      <% end %>
-     </div>
-    <div :if={@joined?} class="h-12 bg-white px-4 pb-4">
-      <.form
-        id="new-message-form"
-        for={@new_message_form}
-        phx-change="validate-message"
-        phx-submit="submit-message"
-        class="flex items-center border-2 border-slate-300 rounded-sm p-1"
-      >
-        <textarea
-          class="flex-grow text-sm px-3 border-l border-slate-300 mx-1 resize-none"
-          cols=""
-          id="chat-message-textarea"
-          name={@new_message_form[:body].name}
-          phx-debounce
-          phx-hook="ChatMessageTextarea"
-          placeholder={"Message #{@room.name}"}
-          rows="1"
+      </div>
+      <div :if={@joined?} class="h-12 bg-white px-4 pb-4">
+        <.form
+          id="new-message-form"
+          for={@new_message_form}
+          phx-change="validate-message"
+          phx-submit="submit-message"
+          class="flex items-center border-2 border-slate-300 rounded-sm p-1"
+        >
+          <textarea
+            class="flex-grow text-sm px-3 border-l border-slate-300 mx-1 resize-none"
+            cols=""
+            id="chat-message-textarea"
+            name={@new_message_form[:body].name}
+            phx-debounce
+            phx-hook="ChatMessageTextarea"
+            placeholder={"Message #{@room.name}"}
+            rows="1"
           > <%= Phoenix.HTML.Form.normalize_value("textarea", @new_message_form[:body].value) %> </textarea>
           <button class="flex-shrink flex items-center justify-center h-6 w-6 rounded hover:bg-slate-200">
             <.icon name="hero-paper-airplane" class="h-4 w-4" />
           </button>
         </.form>
       </div>
-     <div
+      <div
         :if={!@joined?}
         class="flex justify-around mx-5 mb-5 p-6 bg-slate-100 border-slate-300 border rounded-lg"
       >
@@ -175,13 +180,13 @@ defmodule SlaxWeb.ChatRoomLive do
             <p :if={@room.topic} class="text-sm mt-1 text-gray-600"><%= @room.topic %></p>
           </div>
           <div class="flex items-center justify-around">
-          <button
+            <button
               phx-click="join-room"
               class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               Join Room
             </button>
-            </div>
+          </div>
           <div class="mt-4">
             <.link
               navigate={~p"/rooms"}
@@ -202,37 +207,50 @@ defmodule SlaxWeb.ChatRoomLive do
   attr :message, Message, required: true
   attr :timezone, :string, required: true
 
- defp message(assigns) do
-   ~H"""
-   <div id={@dom_id} class="group relative flex px-4 py-3">
-     <button 
-      class="absolute top-4 right-4 text-red-500 hover:text-red-800 cursor-pointer hidden group-hover:block"
-      data-confirm="Are you sure?"
-      phx-click="delete-message"
-      phx-value-id={@message.id}
-     >
-      <.icon :if={@current_user.id == @message.user_id} name="hero-trash" class="h-4 w-4" />
-     </button>
-     <img class="h-10 w-10 rounded flex-shrink-0" src={~p"/images/one_ring.jpg"} />
-     <div class="ml-2">
-       <div class="-mt-1">
-         <.link class="text-sm font-semibold hover:underline">
-           <span><%= username(@message.user) %></span>
-         </.link>
-         <span :if={@timezone} class="m1-1 text-xs text-gray-500">
-           <%= message_timestamp(@message, @timezone) %>
-         </span>
-         <p class="text-sm"><%= @message.body %></p>
-       </div>
-     </div>
-   </div>
-   """
+  defp message(assigns) do
+    ~H"""
+    <div id={@dom_id} class="group relative flex px-4 py-3">
+      <button
+        class="absolute top-4 right-4 text-red-500 hover:text-red-800 cursor-pointer hidden group-hover:block"
+        data-confirm="Are you sure?"
+        phx-click="delete-message"
+        phx-value-id={@message.id}
+      >
+        <.icon :if={@current_user.id == @message.user_id} name="hero-trash" class="h-4 w-4" />
+      </button>
+      <img class="h-10 w-10 rounded flex-shrink-0" src={~p"/images/one_ring.jpg"} />
+      <div class="ml-2">
+        <div class="-mt-1">
+          <.link class="text-sm font-semibold hover:underline">
+            <span><%= username(@message.user) %></span>
+          </.link>
+          <span :if={@timezone} class="m1-1 text-xs text-gray-500">
+            <%= message_timestamp(@message, @timezone) %>
+          </span>
+          <p class="text-sm"><%= @message.body %></p>
+        </div>
+      </div>
+    </div>
+    """
   end
 
   defp message_timestamp(message, timezone) do
     message.inserted_at
     |> Timex.Timezone.convert(timezone)
     |> Timex.format!("%-l:%M %p", :strftime)
+  end
+
+  attr :count, :integer, required: true
+  
+  defp unread_message_counter(assigns) do
+    ~H"""
+    <span
+      :if={@count > 0}
+      class="flex items-center justify-center bg-blue-500 rounded-full font-medium h-5 px-2 ml-auto text-xs text-white"
+    >
+      <%= @count %>
+    </span>
+    """
   end
 
   attr :user, User, required: true
@@ -259,6 +277,7 @@ defmodule SlaxWeb.ChatRoomLive do
 
   attr :active, :boolean, required: true
   attr :room, Room, required: true
+  attr :unread_count, :integer, required: true
 
   defp room_link(assigns) do
     ~H"""
@@ -273,12 +292,13 @@ defmodule SlaxWeb.ChatRoomLive do
       <span class={["ml-2 leading-none", @active && "font-bold"]}>
         <%= @room.name %>
       </span>
+      <.unread_message_counter count={@unread_count} />
     </.link>
     """
   end
 
-  def mount( _params, _session, socket) do
-    rooms = Chat.list_joined_rooms(socket.assigns.current_user)
+  def mount(_params, _session, socket) do
+    rooms = Chat.list_joined_rooms_with_unread_counts(socket.assigns.current_user)
     users = Accounts.list_users()
 
     timezone = get_connect_params(socket)["timezone"]
@@ -289,21 +309,23 @@ defmodule SlaxWeb.ChatRoomLive do
 
     OnlineUsers.subscribe()
 
+    Enum.each(rooms, fn {chat, _} -> Chat.subscribe_to_room(chat) end)
+
     socket =
       socket
       |> assign(rooms: rooms, timezone: timezone, users: users)
       |> assign(online_users: OnlineUsers.list())
       |> stream_configure(:messages,
-        dom_id: fn 
+        dom_id: fn
           %Message{id: id} -> "messages-#{id}"
           :unread_marker -> "messages-unread-marker"
         end
-    )
+      )
+
     {:ok, socket}
   end
 
   def handle_params(params, _session, socket) do
-    if socket.assigns[:room], do: Chat.unsubscribe_from_room(socket.assigns.room)
 
     room =
       case Map.fetch(params, "id") do
@@ -312,9 +334,7 @@ defmodule SlaxWeb.ChatRoomLive do
 
         :error ->
           Chat.get_first_room!()
-    end
-
-    Chat.subscribe_to_room(room)
+      end
 
     last_read_id = Chat.get_last_read_id(room, socket.assigns.current_user)
 
@@ -325,18 +345,25 @@ defmodule SlaxWeb.ChatRoomLive do
 
     Chat.update_last_read_id(room, socket.assigns.current_user)
 
-    {:noreply, 
-    socket
-    |> assign(
-        hide_topic?: false,
-        joined?: Chat.joined?(room, socket.assigns.current_user),
-        page_title: "#" <> room.name, 
-        room: room
-      )
-    |> stream(:messages, messages, reset: true)
-    |> assign_message_form(Chat.change_message(%Message{}))
-    |> push_event("scroll_messages_to_bottom", %{})
-    }
+    {:noreply,
+     socket
+     |> assign(
+       hide_topic?: false,
+       joined?: Chat.joined?(room, socket.assigns.current_user),
+       page_title: "#" <> room.name,
+       room: room
+     )
+     |> stream(:messages, messages, reset: true)
+     |> assign_message_form(Chat.change_message(%Message{}))
+     |> push_event("scroll_messages_to_bottom", %{})
+     |> update(:rooms, fn rooms ->
+        room_id = room.id
+
+        Enum.map(rooms, fn 
+          {%Room{id: ^room_id} = room, _} -> {room, 0}
+          other -> other
+        end)
+      end)}
   end
 
   defp maybe_insert_unread_marker(messages, nil), do: messages
@@ -360,14 +387,19 @@ defmodule SlaxWeb.ChatRoomLive do
 
     {:noreply, socket}
   end
-  
+
   def handle_event("join-room", _, socket) do
     current_user = socket.assigns.current_user
     Chat.join_room!(socket.assigns.room, current_user)
     Chat.subscribe_to_room(socket.assigns.room)
-    socket = assign(socket, join_room?: true, rooms: Chat.list_joined_rooms(current_user))
+
+    socket = 
+      assign(socket, 
+        join_room?: true, 
+        rooms: Chat.list_joined_rooms_with_unread_counts(current_user)
+        )
+
     {:noreply, socket}
-    
   end
 
   def handle_event("toggle-topic", _params, socket) do
@@ -400,15 +432,29 @@ defmodule SlaxWeb.ChatRoomLive do
   end
 
   def handle_info({:new_message, message}, socket) do
-    if message.room_id == socket.assigns.room.id do
-      Chat.update_last_read_id(message.room, socket.assigns.current_user)
-    end
-  
+    room = socket.assigns.room
+
     socket =
+    cond do
+      message.room_id == room.id ->
+        Chat.update_last_read_id(room, socket.assigns.current_user)
+
       socket
       |> stream_insert(:messages, message)
       |> push_event("scroll_messages_to_bottom", %{})
 
+    message.user_id != socket.assigns.current_user.id ->
+      update(socket, :rooms, fn rooms ->
+        Enum.map(rooms, fn 
+          {%Room{id: id} = room, count} when id == message.room_id -> {room, count + 1}
+          other -> other
+        end)
+      end)
+
+    true -> 
+      socket
+    end
+    
     {:noreply, socket}
   end
 
