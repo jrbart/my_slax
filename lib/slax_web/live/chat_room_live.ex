@@ -7,6 +7,8 @@ defmodule SlaxWeb.ChatRoomLive do
   alias Slax.Chat.{Message, Room}
   alias SlaxWeb.OnlineUsers
 
+  import SlaxWeb.RoomComponents
+
   def render(assigns) do
     ~H"""
     <div class="flex flex-col flex-shrink-0 w-64 bg-slate-100">
@@ -208,18 +210,7 @@ defmodule SlaxWeb.ChatRoomLive do
     </div>
     <.modal id="new-room-modal" show={@live_action == :new} on_cancel={JS.patch(~p"/rooms/#{@room}")}>
       <.header>New chat room</.header>
-      <.simple_form
-        for={@new_room_form}
-        id="room-form"
-        phx-change="validate-room"
-        phx-submit="save-room"
-      >
-        <.input field={@new_room_form[:name]} type="text" label="Name" phx-debounce />
-        <.input field={@new_room_form[:topic]} type="text" label="Topic" phx-debounce />
-        <:actions>
-          <.button phx-disable-with="Saving..." class="w-full">Save</.button>
-        </:actions>
-      </.simple_form>
+      <.room_form form={@new_room_form} />
     </.modal>
     """
   end
@@ -354,19 +345,17 @@ defmodule SlaxWeb.ChatRoomLive do
 
     Enum.each(rooms, fn {chat, _} -> Chat.subscribe_to_room(chat) end)
 
-    socket =
-      socket
-      |> assign(rooms: rooms, timezone: timezone, users: users)
-      |> assign(online_users: OnlineUsers.list())
-      |> assign_room_form(Chat.change_room(%Room{}))
-      |> stream_configure(:messages,
-        dom_id: fn
-          %Message{id: id} -> "messages-#{id}"
-          :unread_marker -> "messages-unread-marker"
-        end
-      )
-
-    {:ok, socket}
+    socket
+    |> assign(rooms: rooms, timezone: timezone, users: users)
+    |> assign(online_users: OnlineUsers.list())
+    |> assign_room_form(Chat.change_room(%Room{}))
+    |> stream_configure(:messages,
+      dom_id: fn
+        %Message{id: id} -> "messages-#{id}"
+        :unread_marker -> "messages-unread-marker"
+      end
+    )
+    |> ok()
   end
 
   defp assign_room_form(socket, changeset) do
@@ -393,25 +382,25 @@ defmodule SlaxWeb.ChatRoomLive do
 
     Chat.update_last_read_id(room, socket.assigns.current_user)
 
-    {:noreply,
-     socket
-     |> assign(
-       hide_topic?: false,
-       joined?: Chat.joined?(room, socket.assigns.current_user),
-       page_title: "#" <> room.name,
-       room: room
-     )
-     |> stream(:messages, messages, reset: true)
-     |> assign_message_form(Chat.change_message(%Message{}))
-     |> push_event("scroll_messages_to_bottom", %{})
-     |> update(:rooms, fn rooms ->
-        room_id = room.id
+   socket
+   |> assign(
+     hide_topic?: false,
+     joined?: Chat.joined?(room, socket.assigns.current_user),
+     page_title: "#" <> room.name,
+     room: room
+   )
+   |> stream(:messages, messages, reset: true)
+   |> assign_message_form(Chat.change_message(%Message{}))
+   |> push_event("scroll_messages_to_bottom", %{})
+   |> update(:rooms, fn rooms ->
+      room_id = room.id
 
-        Enum.map(rooms, fn 
-          {%Room{id: ^room_id} = room, _} -> {room, 0}
-          other -> other
-        end)
-      end)}
+      Enum.map(rooms, fn 
+        {%Room{id: ^room_id} = room, _} -> {room, 0}
+        other -> other
+      end)
+    end)
+    |> noreply()
   end
 
   defp maybe_insert_unread_marker(messages, nil), do: messages
