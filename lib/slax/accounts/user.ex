@@ -50,7 +50,7 @@ defmodule Slax.Accounts.User do
 
   defp validate_username(changeset, opts) do
     changeset
-    |> validate_required([username])
+    |> validate_required([:username])
     |> validate_format(:username, ~r/^[A-Za-z0-9-]+$/,
       message: "can only contain letters, numbers, and dashes"
     )
