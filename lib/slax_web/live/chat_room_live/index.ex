@@ -1,6 +1,6 @@
 defmodule SlaxWeb.ChatRoomLive.Index do
   use SlaxWeb, :live_view
-
+  
   alias Slax.Chat
 
   def render(assigns) do

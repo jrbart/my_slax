@@ -6,7 +6,6 @@ defmodule SlaxWeb.RoomComponents do
   attr :form, Phoenix.HTML.Form, required: true
   
   def room_form(assigns) do
-    
     ~H"""
       <.simple_form
         for={@form}
