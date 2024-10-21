@@ -44,7 +44,7 @@ defmodule SlaxWeb.ChatRoomLive.Edit do
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
-    assign(socket, :form, to_form(changeset))
+    assign(socket, :new_room_form, to_form(changeset))
   end
 
   def handle_event("validate-room", %{"room" => room_params}, socket) do
