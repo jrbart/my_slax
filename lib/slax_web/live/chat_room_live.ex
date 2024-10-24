@@ -293,8 +293,8 @@ defmodule SlaxWeb.ChatRoomLive do
       <div class="ml-2">
         <div class="-mt-1">
           <.link 
-            phx-click="delete-message"
-            phx-value-id={@message.id}
+            phx-click="show-profile"
+            phx-value-user-id={@message.user.id}
             class="text-sm font-semibold hover:underline">
             <%= @message.user.username %>
           </.link>

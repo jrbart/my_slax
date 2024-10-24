@@ -10,6 +10,12 @@ defmodule SlaxWeb.ChatRoomLive.ProfileComponent do
             Profile
           </h2>
         </div>
+      <button
+        class="flex items-center justify-center w-6 h-6 rounded hover:bg-gray-300 ml-auto"
+        phx-click="close-profile"
+        >
+        <.icon name="hero-x-mark" class="w-5 h-5" />
+        </button>
       </div>
       <div class="flex flex-col flex-grow overflow-auto p-4">
         <div class="mb-4">
@@ -19,12 +25,6 @@ defmodule SlaxWeb.ChatRoomLive.ProfileComponent do
           <%= @user.username %>
         </h2>
       </div>
-      <button
-        class="flex items-center justify-center w-6 h-6 rounded hover:bg-gray-300 ml-auto"
-        phx-click="close-profile"
-        >
-        <.icon name="hero-x-mark" class="w-5 h-5" />
-        </button>
     </div>
     """
   end
