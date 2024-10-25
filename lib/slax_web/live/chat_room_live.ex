@@ -288,7 +288,7 @@ defmodule SlaxWeb.ChatRoomLive do
         class="h-10 w-10 rounded flex-shrink-0" 
         phx-click="show-profile"
         phx-value-user-id={@message.user.id}
-        src={~p"/images/one_ring.jpg"} 
+        src={user_avatar_path(@message.user)} 
       />
       <div class="ml-2">
         <div class="-mt-1">
@@ -306,6 +306,14 @@ defmodule SlaxWeb.ChatRoomLive do
       </div>
     </div>
     """
+  end
+
+  defp user_avatar_path(user) do
+    if user.avatar_path do
+      ~p"/uploads/#{user.avatar_path}"
+    else
+      ~p"/images/one_ring.jpg"
+    end
   end
 
   defp message_timestamp(message, timezone) do
