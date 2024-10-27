@@ -1,4 +1,5 @@
 defmodule Slax.Chat do
+  alias Expo.Message
   alias Slax.Accounts.User
   alias Expo.Message
   alias Slax.Chat.{Message,Room, RoomMembership}
@@ -160,5 +161,12 @@ defmodule Slax.Chat do
       nil ->
         nil
     end
+  end
+
+  def get_message!(id) do
+    Message
+    |> where([m], m.id == ^id)
+    |> preload(:user)
+    |> Repo.one!()
   end
 end

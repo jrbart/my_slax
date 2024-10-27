@@ -7,11 +7,11 @@ const RoomMessages = {
 
     this.handleEvent("update_avatar", ({user_id, avatar_path}) => {
       const avatars = this.el.querySelectorAll(`img[data-user-avatar-id="${user_id}"]`);
-
       avatar_path.forEach(function(avatar) {
-        avatar.src = `/uploads/${avatar_path}`;
+        avatar.src = `/uploads/${avatar_path}`
       });
-  });
+    });
+  }
 };
 
 export default RoomMessages;
