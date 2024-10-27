@@ -2,7 +2,7 @@ defmodule Slax.Chat do
   alias Expo.Message
   alias Slax.Accounts.User
   alias Expo.Message
-  alias Slax.Chat.{Message,Room, RoomMembership}
+  alias Slax.Chat.{Message, Reply, Room, RoomMembership}
   alias  Slax.Repo
 
   import Ecto.Changeset
@@ -74,8 +74,14 @@ defmodule Slax.Chat do
     Message
     |> where([m], m.room_id == ^room_id)
     |> order_by([m], asc: :inserted_at, asc: :id)
-    |> preload(:user)
+    |> preload_message_user_and_replies()
     |> Repo.all()
+  end
+
+  defp preload_message_user_and_replies(message_query) do
+    replies_query = from r in Reply, order_by: [asc: :inserted_at, asc: :id]
+
+    preload(message_query, [:user, replies: ^{replies_query, [:user]}])
   end
 
   def change_message(message, attrs \\ %{}) do
@@ -84,7 +90,7 @@ defmodule Slax.Chat do
 
   def create_message(room, attrs, user) do
     with {:ok, message} <-
-      %Message{room: room, user: user}
+      %Message{room: room, user: user, replies: []}
       |> Message.changeset(attrs)
       |> Repo.insert() do
         Phoenix.PubSub.broadcast!(@pubsub, topic(room.id), {:new_message, message})
@@ -134,6 +140,7 @@ defmodule Slax.Chat do
   end
 
   defp get_membership(room, user) do
+
     Repo.get_by(RoomMembership, room_id: room.id, user_id: user.id)
   end
 
@@ -164,9 +171,10 @@ defmodule Slax.Chat do
   end
 
   def get_message!(id) do
+
     Message
     |> where([m], m.id == ^id)
-    |> preload(:user)
+    |> preload_message_user_and_replies()
     |> Repo.one!()
   end
 end
