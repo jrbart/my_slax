@@ -10,6 +10,7 @@ users = Repo.all(User)
 now = DateTime.utc_now() |> DateTime.truncate(:second)
 for message <- room.messages do
   num_replies = :rand.uniform(4) - 1
+
   if num_replies > 0 do
     for _ <- (0..num_replies) do
       Repo.insert!(
