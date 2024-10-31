@@ -11,7 +11,23 @@ const RoomMessages = {
         avatar.src = `/uploads/${avatar_path}`
       });
     });
-  }
-};
+
+    this.canLoadMore = true;
+
+    this.el.addEventListener("scroll", e => {
+      if (this.canLoadMore && this.el.scrollTop < 100) {
+        this.canLoadMore = false;
+        const prevHeight = this.el.scrollHeight;
+        this.pushEvent("load-more-messages",{}, (reply) => {
+          this.el.scrollTo(0, this.el.scrollHeight - prevHeight);
+          this.canLoadMore = reply.can_load_more;
+        });
+      }
+    });
+
+    this.handleEvent("reset_pagination", ({can_load_more}) => {
+      this.canLoadMore = can_load_more;
+    })
+  }};
 
 export default RoomMessages;
